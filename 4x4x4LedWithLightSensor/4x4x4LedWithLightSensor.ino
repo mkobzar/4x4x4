@@ -4,6 +4,8 @@ int lightPin = A7;
 byte lightThreshold = 200;
 bool turnedOn = true;
 int lightOnForMs = 50;
+unsigned long showStartedTime = 0;
+unsigned long showMaxTime = 900000;  // 900000 = 15 minutes
 
 /* 
   verticals
@@ -38,7 +40,8 @@ void setup() {
 
 
 void loop() {
-  if (IsDark()) {
+  if (sessionShouldRun()) {
+
     flicker(1000);
   } else {
     if (turnedOn) {
@@ -46,6 +49,19 @@ void loop() {
     }
     delay(1000);
   }
+}
+
+bool sessionShouldRun() {
+  if (!IsDark()) {
+    showStartedTime = 0;
+    return false;
+  }
+  if (showStartedTime == 0) {
+    // first time use
+    showStartedTime = millis();
+    return true;
+  }
+  return millis() - showStartedTime < showMaxTime ? true : false;
 }
 
 bool IsDark() {
