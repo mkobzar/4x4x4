@@ -6,6 +6,7 @@ bool turnedOn = true;
 int lightOnForMs = 50;
 unsigned long showStartedTime = 0;
 unsigned long showMaxTime = 900000;  // 900000 = 15 minutes
+bool goSleep = false;
 
 /* 
   verticals
@@ -41,7 +42,6 @@ void setup() {
 
 void loop() {
   if (sessionShouldRun()) {
-
     flicker(1000);
   } else {
     if (turnedOn) {
@@ -52,22 +52,32 @@ void loop() {
 }
 
 bool sessionShouldRun() {
-  if (!IsDark()) {
+  // it's not dark
+  if (analogRead(lightPin) > lightThreshold) {
+    // reseting show timer
     showStartedTime = 0;
     return false;
   }
+    // new show started
   if (showStartedTime == 0) {
-    // first time use
+    // capturing start time
     showStartedTime = millis();
+    // setting show timeout to false, because it just started
+    goSleep = false;
     return true;
   }
-  return millis() - showStartedTime < showMaxTime ? true : false;
+
+  if (goSleep) {
+    // after the show we won't start new show until new light trigger
+    return false;
+  }
+  // go to sleep when show is over
+  goSleep = millis() - showStartedTime < showMaxTime;
+  // return true if no need to sleep and show should continue.
+  // return fasle (or goSleep) if show should not run
+  return !goSleep;
 }
 
-bool IsDark() {
-  int light = analogRead(lightPin);
-  return light < lightThreshold ? true : false;
-}
 
 void allOff() {
   for (int i = 0; i < 16; i++) {
