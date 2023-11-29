@@ -28,6 +28,7 @@ bool goSleep = false;
 */
 
 void setup() {
+  Serial.begin(9600);
   for (int i = 0; i < 16; i++) {
     pinMode(vertical[i], OUTPUT);
   }
@@ -46,6 +47,7 @@ void loop() {
   } else {
     if (turnedOn) {
       allOff();
+      Serial.println("sessionShould not Run");
     }
     delay(1000);
   }
@@ -54,13 +56,15 @@ void loop() {
 bool sessionShouldRun() {
   // it's not dark
   if (analogRead(lightPin) > lightThreshold) {
+    Serial.println("analogRead(lightPin) > lightThreshold, sessionShouldRun()=false");
     // reseting show timer
     showStartedTime = 0;
     return false;
   }
-    // new show started
+  // new show started
   if (showStartedTime == 0) {
     // capturing start time
+    Serial.println("showStartedTime == 0");
     showStartedTime = millis();
     // setting show timeout to false, because it just started
     goSleep = false;
@@ -69,12 +73,15 @@ bool sessionShouldRun() {
 
   if (goSleep) {
     // after the show we won't start new show until new light trigger
+    Serial.println("goSleep === true");
     return false;
   }
   // go to sleep when show is over
-  goSleep = millis() - showStartedTime < showMaxTime;
+  goSleep = millis() - showStartedTime > showMaxTime;
   // return true if no need to sleep and show should continue.
   // return fasle (or goSleep) if show should not run
+  Serial.print("goSleep = ");
+  Serial.println(goSleep);
   return !goSleep;
 }
 
