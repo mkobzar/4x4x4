@@ -1,3 +1,4 @@
+//#define DEBUG
 int vertical[16] = { 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 22, A6, A5, A4 };
 int level[4] = { A3, A2, A1, A0 };
 int lightPin = A7;
@@ -28,7 +29,9 @@ bool goSleep = false;
 */
 
 void setup() {
+#if defined(DEBUG)
   Serial.begin(9600);
+#endif
   for (int i = 0; i < 16; i++) {
     pinMode(vertical[i], OUTPUT);
   }
@@ -37,6 +40,7 @@ void setup() {
   }
   pinMode(lightPin, INPUT);
   randomSeed(analogRead(10));
+  flicker(1000);  // run once
   allOff();
 }
 
@@ -47,7 +51,9 @@ void loop() {
   } else {
     if (turnedOn) {
       allOff();
+#if defined(DEBUG)
       Serial.println("sessionShould not Run");
+#endif
     }
     delay(1000);
   }
@@ -56,7 +62,9 @@ void loop() {
 bool sessionShouldRun() {
   // it's not dark
   if (analogRead(lightPin) > lightThreshold) {
+#if defined(DEBUG)
     Serial.println("analogRead(lightPin) > lightThreshold, sessionShouldRun()=false");
+#endif
     // reseting show timer
     showStartedTime = 0;
     return false;
@@ -64,7 +72,9 @@ bool sessionShouldRun() {
   // new show started
   if (showStartedTime == 0) {
     // capturing start time
+#if defined(DEBUG)
     Serial.println("showStartedTime == 0");
+#endif
     showStartedTime = millis();
     // setting show timeout to false, because it just started
     goSleep = false;
@@ -73,15 +83,19 @@ bool sessionShouldRun() {
 
   if (goSleep) {
     // after the show we won't start new show until new light trigger
+#if defined(DEBUG)
     Serial.println("goSleep === true");
+#endif
     return false;
   }
   // go to sleep when show is over
   goSleep = millis() - showStartedTime > showMaxTime;
-  // return true if no need to sleep and show should continue.
-  // return fasle (or goSleep) if show should not run
+// return true if no need to sleep and show should continue.
+// return fasle (or goSleep) if show should not run
+#if defined(DEBUG)
   Serial.print("goSleep = ");
   Serial.println(goSleep);
+#endif
   return !goSleep;
 }
 
